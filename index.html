@@ -23,13 +23,11 @@
         <h1>ADHD Reminder</h1>
         <button id="recordButton">Record</button>
         <button id="playButton">Play</button>
-        <button id="stopButton">Stop</button>
     </div>
 
     <script>
         const recordButton = document.getElementById('recordButton');
         const playButton = document.getElementById('playButton');
-        const stopButton = document.getElementById('stopButton');
         let mediaRecorder;
         let audioChunks = [];
         let audioBlob;
@@ -37,7 +35,6 @@
 
         recordButton.addEventListener('click', toggleRecording);
         playButton.addEventListener('click', togglePlayback);
-        stopButton.addEventListener('click', stopPlayback);
 
         function toggleRecording() {
             if (recordButton.textContent === 'Record') {
@@ -59,7 +56,6 @@
                     mediaRecorder.onstop = function() {
                         audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
                         audioChunks = [];
-                        playRecording();
                     };
                 })
                 .catch(function(err) {
@@ -82,7 +78,8 @@
                 audio = new Audio(audioUrl);
                 audio.loop = true;
                 audio.addEventListener('ended', function() {
-                    setTimeout(() => {
+                    setTimeout(function() {
+                        audio.currentTime = 0;
                         audio.play();
                     }, 60000); // 60-second pause
                 });
@@ -94,19 +91,13 @@
 
         function togglePlayback() {
             if (playButton.textContent === 'Play') {
-                playButton.textContent = 'Pause';
-                audio.play();
+                playButton.textContent = 'Stop';
+                playRecording();
             } else {
                 playButton.textContent = 'Play';
-                audio.pause();
-            }
-        }
-
-        function stopPlayback() {
-            if (audio) {
-                audio.pause();
-                audio.currentTime = 0;
-                playButton.textContent = 'Play';
+                if (audio) {
+                    audio.pause();
+                }
             }
         }
     </script>
