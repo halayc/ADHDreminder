@@ -58,7 +58,7 @@
                         const audioUrl = URL.createObjectURL(audioBlob);
                         const audio = new Audio(audioUrl);
                         audio.loop = true;
-                        setTimeout(() => audio.pause(), 60000); // Pause after 1 minute
+                        setTimeout(() => audio.pause(), 90000); // Pause after 90 seconds
                         audio.play();
                     };
                     mediaRecorder.start();
