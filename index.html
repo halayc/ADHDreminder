@@ -22,18 +22,22 @@
     <div class="container">
         <h1>ADHD Reminder</h1>
         <button id="recordButton">Record</button>
+        <button id="playButton">Play</button>
         <button id="stopButton">Stop</button>
     </div>
 
     <script>
         const recordButton = document.getElementById('recordButton');
+        const playButton = document.getElementById('playButton');
         const stopButton = document.getElementById('stopButton');
         let mediaRecorder;
         let audioChunks = [];
         let audioBlob;
+        let audio;
 
         recordButton.addEventListener('click', toggleRecording);
-        stopButton.addEventListener('click', stopRecording);
+        playButton.addEventListener('click', togglePlayback);
+        stopButton.addEventListener('click', stopPlayback);
 
         function toggleRecording() {
             if (recordButton.textContent === 'Record') {
@@ -55,23 +59,12 @@
                     mediaRecorder.onstop = function() {
                         audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
                         audioChunks = [];
-                        playRecording();
+                        setTimeout(playRecording, 90000); // 90-second pause
                     };
                 })
                 .catch(function(err) {
                     console.error('Error recording audio: ', err);
                 });
-        }
-
-        function playRecording() {
-            if (audioBlob) {
-                const audioUrl = URL.createObjectURL(audioBlob);
-                const audio = new Audio(audioUrl);
-                audio.loop = true;
-                audio.play();
-            } else {
-                console.log('No recording available');
-            }
         }
 
         function stopRecording() {
@@ -80,6 +73,35 @@
                 recordButton.textContent = 'Record';
             } else {
                 console.log('No recording to stop');
+            }
+        }
+
+        function playRecording() {
+            if (audioBlob) {
+                const audioUrl = URL.createObjectURL(audioBlob);
+                audio = new Audio(audioUrl);
+                audio.loop = true;
+                audio.play();
+            } else {
+                console.log('No recording available');
+            }
+        }
+
+        function togglePlayback() {
+            if (playButton.textContent === 'Play') {
+                playButton.textContent = 'Pause';
+                audio.play();
+            } else {
+                playButton.textContent = 'Play';
+                audio.pause();
+            }
+        }
+
+        function stopPlayback() {
+            if (audio) {
+                audio.pause();
+                audio.currentTime = 0;
+                playButton.textContent = 'Play';
             }
         }
     </script>
