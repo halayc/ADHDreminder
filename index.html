@@ -1,77 +1,83 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ADHD Reminder</title>
-<style>
-body {
-  font-family: Arial, sans-serif;
-}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sound Recorder</title>
+    <style>
+        .container {
+            text-align: center;
+            margin-top: 50px;
+        }
 
-.container {
-  text-align: center;
-  margin-top: 50px;
-}
-
-button {
-  font-size: 18px;
-  padding: 10px 20px;
-  margin: 10px;
-}
-
-h1 {
-  color: #333;
-}
-</style>
+        button {
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
-<div class="container">
-  <h1>ADHD Reminder</h1>
-  <button id="recordButton">Record</button>
-  <button id="stopButton" disabled>Stop</button>
-</div>
-<audio id="audio" loop></audio>
-<script>
-const recordButton = document.getElementById('recordButton');
-const stopButton = document.getElementById('stopButton');
-const audio = document.getElementById('audio');
-let mediaRecorder;
-let audioChunks = [];
+    <div class="container">
+        <h1>Sound Recorder</h1>
+        <button id="recordButton">Record</button>
+        <button id="playButton">Play</button>
+        <button id="stopButton">Stop</button>
+    </div>
 
-recordButton.addEventListener('click', startRecording);
-stopButton.addEventListener('click', stopRecording);
+    <script>
+        const recordButton = document.getElementById('recordButton');
+        const playButton = document.getElementById('playButton');
+        const stopButton = document.getElementById('stopButton');
+        let audioChunks = [];
+        let mediaRecorder;
 
-function startRecording() {
-  navigator.mediaDevices.getUserMedia({ audio: true })
-    .then(stream => {
-      mediaRecorder = new MediaRecorder(stream);
-      mediaRecorder.ondataavailable = e => {
-        audioChunks.push(e.data);
-        if (mediaRecorder.state === 'inactive') {
-          const blob = new Blob(audioChunks, { type: 'audio/wav' });
-          const url = URL.createObjectURL(blob);
-          audio.src = url;
-          audio.play();
-          setTimeout(() => {
-            audio.pause();
-            audioChunks = [];
-            startRecording(); // Start the loop after 90 seconds pause
-          }, 90000);
+        recordButton.addEventListener('click', startRecording);
+        playButton.addEventListener('click', playRecording);
+        stopButton.addEventListener('click', stopRecording);
+
+        function startRecording() {
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then(function(stream) {
+                    mediaRecorder = new MediaRecorder(stream);
+                    mediaRecorder.ondataavailable = function(e) {
+                        audioChunks.push(e.data);
+                    };
+                    mediaRecorder.onstop = function() {
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                        const audioUrl = URL.createObjectURL(audioBlob);
+                        const audio = new Audio(audioUrl);
+                        audio.loop = true;
+                        setTimeout(() => audio.pause(), 60000); // Pause after 1 minute
+                        audio.play();
+                    };
+                    mediaRecorder.start();
+                })
+                .catch(function(err) {
+                    console.error('Error recording audio: ', err);
+                });
         }
-      };
-      mediaRecorder.start();
-      recordButton.disabled = true;
-      stopButton.disabled = false;
-    })
-    .catch(err => console.error('Error accessing microphone:', err));
-}
 
-function stopRecording() {
-  mediaRecorder.stop();
-  recordButton.disabled = false;
-  stopButton.disabled = true;
-}
-</script>
+        function playRecording() {
+            // Play previously recorded audio if available
+            if (audioChunks.length > 0) {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                const audioUrl = URL.createObjectURL(audioBlob);
+                const audio = new Audio(audioUrl);
+                audio.play();
+            } else {
+                console.log('No recording available');
+            }
+        }
+
+        function stopRecording() {
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+            } else {
+                console.log('No recording to stop');
+            }
+        }
+    </script>
 </body>
 </html>
