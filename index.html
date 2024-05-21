@@ -4,27 +4,21 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ADHD Reminder</title>
-  <style>
-    #recordButton {
-      margin-bottom: 10px;
-    }
-  </style>
 </head>
 <body>
   <h1>ADHD Reminder</h1>
-  <button id="recordButton">Record</button>
+  <button id="recordButton">Record Reminder</button>
   <button id="playPauseButton">Play</button>
-  <audio id="audioPlayer" controls></audio>
 
   <script>
     let recording = false;
     let recordingChunks = [];
     let audioContext;
     let mediaRecorder;
+    let loopInterval;
 
     const recordButton = document.getElementById('recordButton');
     const playPauseButton = document.getElementById('playPauseButton');
-    const audioPlayer = document.getElementById('audioPlayer');
 
     recordButton.addEventListener('click', toggleRecording);
     playPauseButton.addEventListener('click', toggleLoop);
@@ -44,41 +38,42 @@
           mediaRecorder.onstop = () => {
             const audioBlob = new Blob(recordingChunks, { type: 'audio/wav' });
             const audioUrl = URL.createObjectURL(audioBlob);
-            audioPlayer.src = audioUrl;
+            playAudioWithPause(audioUrl);
           };
           mediaRecorder.start();
         } catch (error) {
           console.error('Error recording:', error);
         }
       } else {
-        recordButton.textContent = 'Record';
+        recordButton.textContent = 'Record Reminder';
         recording = false;
         mediaRecorder.stop();
       }
     }
 
-    function toggleLoop() {
-      if (audioPlayer.paused) {
-        playPauseButton.textContent = 'Pause';
-        audioPlayer.play();
-        addSilence();
-      } else {
-        playPauseButton.textContent = 'Play';
-        audioPlayer.pause();
-      }
+    function playAudioWithPause(audioUrl) {
+      const audio = new Audio(audioUrl);
+      audio.loop = true;
+      audio.play();
+
+      loopInterval = setInterval(() => {
+        audio.pause();
+        setTimeout(() => {
+          audio.play();
+        }, 60000); // 60 seconds pause
+      }, audio.duration * 1000); // audio duration in milliseconds
     }
 
-    function addSilence() {
-      const silenceDuration = 60; // 60 seconds
-      const audioContext = new AudioContext();
-      const destination = audioContext.createMediaStreamDestination();
-      const audioSource = audioContext.createMediaElementSource(audioPlayer);
-      const silence = audioContext.createBufferSource();
-      const silenceBuffer = audioContext.createBuffer(1, audioContext.sampleRate * silenceDuration, audioContext.sampleRate);
-      silence.buffer = silenceBuffer;
-      audioSource.connect(destination);
-      silence.connect(destination);
-      audioPlayer.srcObject = destination.stream;
+    function toggleLoop() {
+      if (loopInterval) {
+        clearInterval(loopInterval);
+        playPauseButton.textContent = 'Play';
+        loopInterval = null;
+      } else {
+        playPauseButton.textContent = 'Pause';
+        const audioUrl = URL.createObjectURL(new Blob(recordingChunks, { type: 'audio/wav' }));
+        playAudioWithPause(audioUrl);
+      }
     }
   </script>
 </body>
