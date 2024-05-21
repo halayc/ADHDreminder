@@ -33,7 +33,7 @@
         if (!recording) {
             startRecording();
         } else {
-            stopRecording();
+            endRecording();
         }
     }
 
@@ -43,7 +43,7 @@
             audioElement.pause();
         }
 
-        recordButton.innerText = 'Stop Recording';
+        recordButton.innerText = 'End Recording';
         recording = true;
 
         // Code to start recording sound bite goes here
@@ -59,13 +59,26 @@
         startAudioLoop();
     }
 
-    function stopRecording() {
+    function endRecording() {
+        recordButton.innerText = 'Stop Reminder';
+        recording = false;
+
+        // Code to end recording sound bite goes here
+        // For demonstration, let's assume the recording is stopped
+        // You may add code here to actually stop the recording if necessary
+
+        // Start the audio loop to replay the sound bite once every 30 seconds
+        startAudioLoop();
+    }
+
+    function stopReminder() {
         recordButton.innerText = 'Record Reminder';
         recording = false;
 
-        // Code to stop recording sound bite goes here
-        // For demonstration, let's assume the recording is stopped
-        // You may add code here to actually stop the recording if necessary
+        // Code to stop reminder sound goes here
+        // For demonstration, let's assume the audio loop is stopped
+        clearInterval(audioLoopInterval);
+        audioElement.pause();
     }
 
     function startAudioLoop() {
