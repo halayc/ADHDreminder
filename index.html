@@ -4,11 +4,22 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ADHD Reminder</title>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    #title {
+      text-align: center;
+    }
+  </style>
 </head>
 <body>
-  <h1>ADHD Reminder</h1>
-  <button id="recordButton">Record / Stop Recording</button>
-  <button id="pauseButton">Pause / Play</button>
+  <h1 id="title">ADHD Reminder</h1>
+  <button id="recordButton">Record Reminder</button>
 
   <script>
     let recording = false;
@@ -18,14 +29,14 @@
     let loopInterval;
 
     const recordButton = document.getElementById('recordButton');
-    const pauseButton = document.getElementById('pauseButton');
+    const title = document.getElementById('title');
 
     recordButton.addEventListener('click', toggleRecording);
-    pauseButton.addEventListener('click', toggleLoop);
 
     async function toggleRecording() {
       if (!recording) {
         recordButton.textContent = 'Stop Recording';
+        title.textContent = 'Recording...';
         recording = true;
 
         try {
@@ -45,7 +56,11 @@
           console.error('Error recording:', error);
         }
       } else {
-        recordButton.textContent = 'Record / Stop Recording';
+        if (loopInterval) {
+          clearInterval(loopInterval);
+          title.textContent = 'ADHD Reminder';
+        }
+        recordButton.textContent = 'Record Reminder';
         recording = false;
         mediaRecorder.stop();
       }
@@ -56,23 +71,11 @@
       audio.loop = true;
 
       loopInterval = setInterval(() => {
-        audio.pause();
+        audio.play();
         setTimeout(() => {
-          audio.play();
+          audio.pause();
         }, 30000); // 30 seconds pause
       }, (audio.duration + 30) * 1000); // audio duration in milliseconds + 30 seconds
-    }
-
-    function toggleLoop() {
-      if (loopInterval) {
-        clearInterval(loopInterval);
-        pauseButton.textContent = 'Pause / Play';
-        loopInterval = null;
-      } else {
-        pauseButton.textContent = 'Pause / Play';
-        const audioUrl = URL.createObjectURL(new Blob(recordingChunks, { type: 'audio/wav' }));
-        playAudioWithPause(audioUrl);
-      }
     }
   </script>
 </body>
