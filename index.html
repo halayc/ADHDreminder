@@ -1,94 +1,73 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ADHD Reminder</title>
-  <style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ADHD Reminder</title>
+<style>
     body {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
+        font-family: Arial, sans-serif;
+        text-align: center;
     }
-    #title {
-      text-align: center;
+    #recordButton {
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: pointer;
     }
-  </style>
+</style>
 </head>
 <body>
-  <h1 id="title">ADHD Reminder</h1>
-  <button id="recordButton">Record Reminder</button>
-
-  <script>
+<h1>ADHD Reminder</h1>
+<br>
+<br>
+<br>
+<button id="recordButton" onclick="toggleRecording()">Record Reminder</button>
+<audio id="reminderAudio" loop></audio>
+<script>
     let recording = false;
-    let recordingChunks = [];
-    let audioContext;
-    let mediaRecorder;
-    let audioIndex = 0;
+    let audioLoopInterval;
 
-    const recordButton = document.getElementById('recordButton');
-    const title = document.getElementById('title');
+    function toggleRecording() {
+        const recordButton = document.getElementById('recordButton');
+        const reminderAudio = document.getElementById('reminderAudio');
 
-    recordButton.addEventListener('click', toggleRecording);
-
-    async function toggleRecording() {
-      if (!recording) {
-        if (recordButton.textContent === 'Record Reminder') {
-          recordButton.textContent = 'Stop Recording';
-        } else if (recordButton.textContent === 'Stop') {
-          recordButton.textContent = 'Record Reminder';
+        if (!recording) {
+            startRecording(recordButton, reminderAudio);
+        } else {
+            stopRecording(recordButton, reminderAudio);
         }
-        title.textContent = 'Recording...';
+    }
+
+    function startRecording(recordButton, reminderAudio) {
+        if (audioLoopInterval) {
+            clearInterval(audioLoopInterval);
+            reminderAudio.pause();
+        }
+
+        recordButton.innerText = 'Stop Recording';
         recording = true;
 
-        try {
-          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-          audioContext = new AudioContext();
-          mediaRecorder = new MediaRecorder(stream);
-          mediaRecorder.ondataavailable = event => {
-            recordingChunks.push(event.data);
-          };
-          mediaRecorder.onstop = () => {
-            const audioBlob = new Blob(recordingChunks, { type: 'audio/wav' });
-            const audioUrl = URL.createObjectURL(audioBlob);
-            playAudioWithPause(audioUrl);
-          };
-          mediaRecorder.start();
-        } catch (error) {
-          console.error('Error recording:', error);
-        }
-      } else {
-        if (mediaRecorder) {
-          recordButton.textContent = 'Stop';
-          title.textContent = 'ADHD Reminder';
-          recording = false;
-          mediaRecorder.stop();
-        }
-      }
+        // Code to start recording sound bite goes here
     }
 
-    function playAudioWithPause(audioUrl) {
-      const audio = new Audio(audioUrl);
-      audio.loop = false;
+    function stopRecording(recordButton, reminderAudio) {
+        recordButton.innerText = 'Stop';
+        recording = false;
 
-      audio.addEventListener('ended', () => {
-        setTimeout(() => {
-          audioIndex++;
-          if (audioIndex % 2 === 1) {
-            audio.play();
-          } else {
-            setTimeout(() => {
-              const nextAudioUrl = URL.createObjectURL(new Blob(recordingChunks, { type: 'audio/wav' }));
-              playAudioWithPause(nextAudioUrl);
-            }, 30000); // 30 seconds pause
-          }
-        }, 0); // Play immediately
-      });
-
-      audio.play();
+        // Code to stop recording sound bite and start playing audio loop goes here
+        startAudioLoop(reminderAudio);
     }
-  </script>
+
+    function startAudioLoop(audioElement) {
+        audioElement.src = 'your_sound_bite.mp3'; // Set the source of your sound bite
+        audioElement.play();
+
+        // Audio loop will replay every 60 seconds
+        audioLoopInterval = setInterval(function() {
+            audioElement.currentTime = 0;
+            audioElement.play();
+        }, 60000);
+    }
+</script>
 </body>
 </html>
