@@ -30,8 +30,9 @@
         const recordButton = document.getElementById('recordButton');
         const playButton = document.getElementById('playButton');
         const stopButton = document.getElementById('stopButton');
-        let audioChunks = [];
         let mediaRecorder;
+        let audioChunks = [];
+        let audioBlob;
 
         recordButton.addEventListener('click', toggleRecording);
         playButton.addEventListener('click', playRecording);
@@ -50,18 +51,14 @@
             navigator.mediaDevices.getUserMedia({ audio: true })
                 .then(function(stream) {
                     mediaRecorder = new MediaRecorder(stream);
+                    mediaRecorder.start();
                     mediaRecorder.ondataavailable = function(e) {
                         audioChunks.push(e.data);
                     };
                     mediaRecorder.onstop = function() {
-                        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-                        const audioUrl = URL.createObjectURL(audioBlob);
-                        const audio = new Audio(audioUrl);
-                        audio.loop = true;
-                        setTimeout(() => audio.pause(), 90000); // Pause after 90 seconds
-                        audio.play();
+                        audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                        audioChunks = [];
                     };
-                    mediaRecorder.start();
                 })
                 .catch(function(err) {
                     console.error('Error recording audio: ', err);
@@ -69,11 +66,11 @@
         }
 
         function playRecording() {
-            // Play previously recorded audio if available
-            if (audioChunks.length > 0) {
-                const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+            if (audioBlob) {
                 const audioUrl = URL.createObjectURL(audioBlob);
                 const audio = new Audio(audioUrl);
+                audio.loop = true;
+                setTimeout(() => audio.pause(), 90000); // Pause after 90 seconds
                 audio.play();
             } else {
                 console.log('No recording available');
