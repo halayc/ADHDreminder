@@ -59,7 +59,7 @@
                     mediaRecorder.onstop = function() {
                         audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
                         audioChunks = [];
-                        setTimeout(playRecording, 90000); // 90-second pause
+                        playRecording();
                     };
                 })
                 .catch(function(err) {
