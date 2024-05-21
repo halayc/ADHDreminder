@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sound Recorder</title>
+    <title>ADHD Reminder</title>
     <style>
         .container {
             text-align: center;
@@ -20,7 +20,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>Sound Recorder</h1>
+        <h1>ADHD Reminder</h1>
         <button id="recordButton">Record</button>
         <button id="playButton">Play</button>
         <button id="stopButton">Stop</button>
@@ -33,11 +33,20 @@
         let audioChunks = [];
         let mediaRecorder;
 
-        recordButton.addEventListener('click', startRecording);
+        recordButton.addEventListener('click', toggleRecording);
         playButton.addEventListener('click', playRecording);
         stopButton.addEventListener('click', stopRecording);
 
+        function toggleRecording() {
+            if (recordButton.textContent === 'Record') {
+                startRecording();
+            } else {
+                stopRecording();
+            }
+        }
+
         function startRecording() {
+            recordButton.textContent = 'Stop Recording';
             navigator.mediaDevices.getUserMedia({ audio: true })
                 .then(function(stream) {
                     mediaRecorder = new MediaRecorder(stream);
@@ -74,6 +83,7 @@
         function stopRecording() {
             if (mediaRecorder && mediaRecorder.state !== 'inactive') {
                 mediaRecorder.stop();
+                recordButton.textContent = 'Record';
             } else {
                 console.log('No recording to stop');
             }
