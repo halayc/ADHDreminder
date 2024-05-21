@@ -5,97 +5,73 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ADHD Reminder</title>
 <style>
-    /* Add your CSS styles here */
+body {
+  font-family: Arial, sans-serif;
+}
+
+.container {
+  text-align: center;
+  margin-top: 50px;
+}
+
+button {
+  font-size: 18px;
+  padding: 10px 20px;
+  margin: 10px;
+}
+
+h1 {
+  color: #333;
+}
 </style>
 </head>
 <body>
-<div id="app">
-    <button id="recordButton" onclick="toggleRecording()">Record</button>
-    <button id="stopRecordingButton" style="display: none;" onclick="stopRecording()">Stop Recording</button>
-    <button id="stopPlayingButton" style="display: none;" onclick="stopPlayingLoop()">Stop Playing Loop</button>
+<div class="container">
+  <h1>ADHD Reminder</h1>
+  <button id="recordButton">Record</button>
+  <button id="stopButton" disabled>Stop</button>
 </div>
-
+<audio id="audio" loop></audio>
 <script>
-    let recorder;
-    let audioChunks = [];
-    let isRecording = false;
-    let isPlaying = false;
-    let audio;
+const recordButton = document.getElementById('recordButton');
+const stopButton = document.getElementById('stopButton');
+const audio = document.getElementById('audio');
+let mediaRecorder;
+let audioChunks = [];
 
-    async function startRecording() {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        recorder = new MediaRecorder(stream);
-        recorder.ondataavailable = e => {
-            audioChunks.push(e.data);
-            if (recorder.state === 'inactive') {
-                const blob = new Blob(audioChunks, { type: 'audio/wav' });
-                playAudio(blob);
-            }
-        };
-        recorder.start();
-        isRecording = true;
-        updateButtonLabels();
-    }
+recordButton.addEventListener('click', startRecording);
+stopButton.addEventListener('click', stopRecording);
 
-    function stopRecording() {
-        if (recorder.state !== 'inactive') {
-            recorder.stop();
-        }
-        isRecording = false;
-        updateButtonLabels();
-    }
-
-    function playAudio(blob) {
-        const audioURL = URL.createObjectURL(blob);
-        audio = new Audio(audioURL);
-        audio.loop = true;
-        audio.play();
-        isPlaying = true;
-        updateButtonLabels();
-        audio.onended = () => {
-            setTimeout(() => {
-                if (isPlaying) {
-                    audio.play();
-                }
-            }, 60000); // 1 minute pause between loops
-        };
-    }
-
-    function stopPlayingLoop() {
-        if (isPlaying) {
+function startRecording() {
+  navigator.mediaDevices.getUserMedia({ audio: true })
+    .then(stream => {
+      mediaRecorder = new MediaRecorder(stream);
+      mediaRecorder.ondataavailable = e => {
+        audioChunks.push(e.data);
+        if (mediaRecorder.state === 'inactive') {
+          const blob = new Blob(audioChunks, { type: 'audio/wav' });
+          const url = URL.createObjectURL(blob);
+          audio.src = url;
+          audio.play();
+          setTimeout(() => {
             audio.pause();
-            isPlaying = false;
-            updateButtonLabels();
+            audioChunks = [];
+            startRecording(); // Start the loop after 90 seconds pause
+          }, 90000);
         }
-    }
+      };
+      mediaRecorder.start();
+      recordButton.disabled = true;
+      stopButton.disabled = false;
+    })
+    .catch(err => console.error('Error accessing microphone:', err));
+}
 
-    function toggleRecording() {
-        if (isRecording) {
-            stopRecording();
-        } else {
-            startRecording();
-        }
-    }
-
-    function updateButtonLabels() {
-        const recordButton = document.getElementById('recordButton');
-        const stopRecordingButton = document.getElementById('stopRecordingButton');
-        const stopPlayingButton = document.getElementById('stopPlayingButton');
-
-        if (isRecording) {
-            recordButton.innerText = "Stop Recording";
-            stopRecordingButton.style.display = 'inline';
-            stopPlayingButton.style.display = 'none';
-        } else if (isPlaying) {
-            recordButton.innerText = "Record Again";
-            stopRecordingButton.style.display = 'none';
-            stopPlayingButton.style.display = 'inline';
-        } else {
-            recordButton.innerText = "Record";
-            stopRecordingButton.style.display = 'none';
-            stopPlayingButton.style.display = 'none';
-        }
-    }
+function stopRecording() {
+  mediaRecorder.stop();
+  recordButton.disabled = false;
+  stopButton.disabled = true;
+}
 </script>
 </body>
 </html>
