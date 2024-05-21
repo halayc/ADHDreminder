@@ -81,6 +81,9 @@
                 const audioUrl = URL.createObjectURL(audioBlob);
                 audio = new Audio(audioUrl);
                 audio.loop = true;
+                audio.addEventListener('ended', function() {
+                    setTimeout(playRecording, 60000); // 60-second pause
+                });
                 audio.play();
             } else {
                 console.log('No recording available');
