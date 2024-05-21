@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADHD Reminder</title>
+    <style>
+        .container {
+            text-align: center;
+            margin-top: 50px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>ADHD Reminder</h1>
+        <button id="recordButton">Record</button>
+        <button id="stopRecordButton" style="display: none;">Stop Recording</button>
+        <button id="playButton" style="display: none;">Play Reminder</button>
+        <button id="stopButton" style="display: none;">Stop Reminder</button>
+    </div>
+
+    <script>
+        let audioChunks = [];
+        let recorder;
+        let audioPlayer = new Audio();
+        let recordButton = document.getElementById('recordButton');
+        let stopRecordButton = document.getElementById('stopRecordButton');
+        let playButton = document.getElementById('playButton');
+        let stopButton = document.getElementById('stopButton');
+        let loopInterval;
+
+        // Start recording
+        recordButton.addEventListener('click', () => {
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then(stream => {
+                    recorder = new MediaRecorder(stream);
+                    recorder.ondataavailable = e => {
+                        audioChunks.push(e.data);
+                    };
+                    recorder.onstop = () => {
+                        let audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                        audioPlayer.src = URL.createObjectURL(audioBlob);
+                        playButton.style.display = 'inline-block';
+                    };
+                    recorder.start();
+                    recordButton.style.display = 'none';
+                    stopRecordButton.style.display = 'inline-block';
+                })
+                .catch(err => console.error('Recording error: ', err));
+        });
+
+        // Stop recording
+        stopRecordButton.addEventListener('click', () => {
+            if (recorder && recorder.state !== 'inactive') {
+                recorder.stop();
+                stopRecordButton.style.display = 'none';
+            }
+        });
+
+        // Play reminder on loop
+        playButton.addEventListener('click', () => {
+            audioPlayer.loop = true;
+            audioPlayer.play();
+            playButton.style.display = 'none';
+            stopButton.style.display = 'inline-block';
+            loopInterval = setInterval(() => {
+                audioPlayer.pause();
+                setTimeout(() => {
+                    audioPlayer.play();
+                }, 60000); // 1 minute pause between loops
+            }, audioPlayer.duration * 1000);
+        });
+
+        // Stop reminder
+        stopButton.addEventListener('click', () => {
+            audioPlayer.pause();
+            audioPlayer.currentTime = 0;
+            audioPlayer.loop = false;
+            stopButton.style.display = 'none';
+            playButton.style.display = 'inline-block';
+            clearInterval(loopInterval);
+        });
+    </script>
+</body>
+</html>
