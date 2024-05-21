@@ -26,7 +26,7 @@
     let recordingChunks = [];
     let audioContext;
     let mediaRecorder;
-    let loopInterval;
+    let audioIndex = 0;
 
     const recordButton = document.getElementById('recordButton');
     const title = document.getElementById('title');
@@ -35,7 +35,11 @@
 
     async function toggleRecording() {
       if (!recording) {
-        recordButton.textContent = 'Stop Recording';
+        if (recordButton.textContent === 'Record Reminder') {
+          recordButton.textContent = 'Stop Recording';
+        } else if (recordButton.textContent === 'Stop') {
+          recordButton.textContent = 'Record Reminder';
+        }
         title.textContent = 'Recording...';
         recording = true;
 
@@ -56,26 +60,34 @@
           console.error('Error recording:', error);
         }
       } else {
-        if (loopInterval) {
-          clearInterval(loopInterval);
+        if (mediaRecorder) {
+          recordButton.textContent = 'Stop';
           title.textContent = 'ADHD Reminder';
+          recording = false;
+          mediaRecorder.stop();
         }
-        recordButton.textContent = 'Record Reminder';
-        recording = false;
-        mediaRecorder.stop();
       }
     }
 
     function playAudioWithPause(audioUrl) {
       const audio = new Audio(audioUrl);
-      audio.loop = true;
+      audio.loop = false;
 
-      loopInterval = setInterval(() => {
-        audio.play();
+      audio.addEventListener('ended', () => {
         setTimeout(() => {
-          audio.pause();
-        }, 30000); // 30 seconds pause
-      }, (audio.duration + 30) * 1000); // audio duration in milliseconds + 30 seconds
+          audioIndex++;
+          if (audioIndex % 2 === 1) {
+            audio.play();
+          } else {
+            setTimeout(() => {
+              const nextAudioUrl = URL.createObjectURL(new Blob(recordingChunks, { type: 'audio/wav' }));
+              playAudioWithPause(nextAudioUrl);
+            }, 30000); // 30 seconds pause
+          }
+        }, 0); // Play immediately
+      });
+
+      audio.play();
     }
   </script>
 </body>
