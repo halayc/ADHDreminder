@@ -22,19 +22,20 @@
     <div class="container">
         <h1>ADHD Reminder</h1>
         <button id="recordButton">Record</button>
-        <button id="playButton">Play</button>
+        <button id="pauseButton">Pause</button>
     </div>
 
     <script>
         const recordButton = document.getElementById('recordButton');
-        const playButton = document.getElementById('playButton');
+        const pauseButton = document.getElementById('pauseButton');
         let mediaRecorder;
         let audioChunks = [];
         let audioBlob;
         let audio;
+        let paused = false;
 
         recordButton.addEventListener('click', toggleRecording);
-        playButton.addEventListener('click', togglePlayback);
+        pauseButton.addEventListener('click', togglePlayback);
 
         function toggleRecording() {
             if (recordButton.textContent === 'Record') {
@@ -79,8 +80,10 @@
                 audio.loop = true;
                 audio.addEventListener('ended', function() {
                     setTimeout(function() {
-                        audio.currentTime = 0;
-                        audio.play();
+                        if (!paused) {
+                            audio.currentTime = 0;
+                            audio.play();
+                        }
                     }, 60000); // 60-second pause
                 });
                 audio.play();
@@ -90,13 +93,19 @@
         }
 
         function togglePlayback() {
-            if (playButton.textContent === 'Play') {
-                playButton.textContent = 'Stop';
-                playRecording();
-            } else {
-                playButton.textContent = 'Play';
+            if (pauseButton.textContent === 'Pause') {
+                pauseButton.textContent = 'Play';
+                paused = true;
                 if (audio) {
                     audio.pause();
+                }
+            } else {
+                pauseButton.textContent = 'Pause';
+                paused = false;
+                if (audio) {
+                    audio.play();
+                } else {
+                    playRecording();
                 }
             }
         }
