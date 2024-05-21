@@ -22,20 +22,17 @@
     <div class="container">
         <h1>ADHD Reminder</h1>
         <button id="recordButton">Record</button>
-        <button id="playButton">Play</button>
         <button id="stopButton">Stop</button>
     </div>
 
     <script>
         const recordButton = document.getElementById('recordButton');
-        const playButton = document.getElementById('playButton');
         const stopButton = document.getElementById('stopButton');
         let mediaRecorder;
         let audioChunks = [];
         let audioBlob;
 
         recordButton.addEventListener('click', toggleRecording);
-        playButton.addEventListener('click', playRecording);
         stopButton.addEventListener('click', stopRecording);
 
         function toggleRecording() {
@@ -58,6 +55,7 @@
                     mediaRecorder.onstop = function() {
                         audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
                         audioChunks = [];
+                        playRecording();
                     };
                 })
                 .catch(function(err) {
@@ -70,7 +68,6 @@
                 const audioUrl = URL.createObjectURL(audioBlob);
                 const audio = new Audio(audioUrl);
                 audio.loop = true;
-                setTimeout(() => audio.pause(), 90000); // Pause after 90 seconds
                 audio.play();
             } else {
                 console.log('No recording available');
