@@ -7,8 +7,8 @@
 </head>
 <body>
   <h1>ADHD Reminder</h1>
-  <button id="recordButton">Record Reminder</button>
-  <button id="playPauseButton">Play</button>
+  <button id="recordButton">Record / Stop Recording</button>
+  <button id="pauseButton">Pause / Play</button>
 
   <script>
     let recording = false;
@@ -18,10 +18,10 @@
     let loopInterval;
 
     const recordButton = document.getElementById('recordButton');
-    const playPauseButton = document.getElementById('playPauseButton');
+    const pauseButton = document.getElementById('pauseButton');
 
     recordButton.addEventListener('click', toggleRecording);
-    playPauseButton.addEventListener('click', toggleLoop);
+    pauseButton.addEventListener('click', toggleLoop);
 
     async function toggleRecording() {
       if (!recording) {
@@ -45,7 +45,7 @@
           console.error('Error recording:', error);
         }
       } else {
-        recordButton.textContent = 'Record Reminder';
+        recordButton.textContent = 'Record / Stop Recording';
         recording = false;
         mediaRecorder.stop();
       }
@@ -54,23 +54,22 @@
     function playAudioWithPause(audioUrl) {
       const audio = new Audio(audioUrl);
       audio.loop = true;
-      audio.play();
 
       loopInterval = setInterval(() => {
         audio.pause();
         setTimeout(() => {
           audio.play();
         }, 30000); // 30 seconds pause
-      }, audio.duration * 1000); // audio duration in milliseconds
+      }, (audio.duration + 30) * 1000); // audio duration in milliseconds + 30 seconds
     }
 
     function toggleLoop() {
       if (loopInterval) {
         clearInterval(loopInterval);
-        playPauseButton.textContent = 'Play';
+        pauseButton.textContent = 'Pause / Play';
         loopInterval = null;
       } else {
-        playPauseButton.textContent = 'Pause';
+        pauseButton.textContent = 'Pause / Play';
         const audioUrl = URL.createObjectURL(new Blob(recordingChunks, { type: 'audio/wav' }));
         playAudioWithPause(audioUrl);
       }
