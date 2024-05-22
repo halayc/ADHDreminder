@@ -9,7 +9,7 @@
         font-family: Arial, sans-serif;
         text-align: center;
     }
-    #recordButton {
+    button {
         padding: 10px 20px;
         font-size: 16px;
         cursor: pointer;
@@ -17,77 +17,86 @@
 </style>
 </head>
 <body>
-<h1>ADHD Reminder</h1>
-<br>
-<br>
-<br>
-<button id="recordButton" onclick="toggleRecording()">Record Reminder</button>
-<audio id="reminderAudio" loop></audio>
-<script>
-    let recording = false;
-    let audioLoopInterval;
-    const audioElement = document.getElementById('reminderAudio');
-    const recordButton = document.getElementById('recordButton');
 
-    function toggleRecording() {
-        if (!recording) {
-            startRecording();
+<h1>ADHD Reminder</h1>
+
+<button id="recordBtn">Record Reminder</button>
+
+<audio id="audioLoop" loop>
+    <!-- Placeholder for audio source -->
+</audio>
+
+<p id="statusText"></p>
+
+<script>
+    let isRecording = false;
+    let isPlaying = false;
+    let audioLoop = document.getElementById('audioLoop');
+    let recordBtn = document.getElementById('recordBtn');
+    let statusText = document.getElementById('statusText');
+
+    recordBtn.addEventListener('click', function() {
+        if (isRecording) {
+            // End recording
+            isRecording = false;
+            stopRecording();
         } else {
-            endRecording();
+            // Start recording
+            isRecording = true;
+            startRecording();
         }
-    }
+    });
 
     function startRecording() {
-        if (audioLoopInterval) {
-            clearInterval(audioLoopInterval);
-            audioElement.pause();
+        if (isPlaying) {
+            stopLoop();
         }
-
-        recordButton.innerText = 'End Recording';
-        recording = true;
-
-        // Code to start recording sound bite goes here
-        // For demonstration, let's assume the recorded sound bite is already stored in a variable called recordedSoundBite
-        // Replace this with your actual recorded sound bite
-        const recordedSoundBite = 'your_recorded_sound_bite.mp3';
-
-        // Set the source of the audio element to the recorded sound bite
-        audioElement.src = recordedSoundBite;
-        audioElement.play();
-
-        // Start the audio loop to replay the sound bite once every 30 seconds
-        startAudioLoop();
+        recordBtn.textContent = 'End Recording';
+        statusText.textContent = '';
+        navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(function(stream) {
+            let mediaRecorder = new MediaRecorder(stream);
+            let chunks = [];
+            mediaRecorder.ondataavailable = function(e) {
+                chunks.push(e.data);
+            }
+            mediaRecorder.onstop = function() {
+                let blob = new Blob(chunks, { 'type': 'audio/wav' });
+                let audioUrl = URL.createObjectURL(blob);
+                audioLoop.src = audioUrl;
+                if (!isPlaying) {
+                    startLoop();
+                }
+            }
+            mediaRecorder.start();
+            setTimeout(function() {
+                mediaRecorder.stop();
+            }, 3000); // Adjust recording duration as needed
+        })
+        .catch(function(err) {
+            console.error('Error accessing microphone:', err);
+        });
     }
 
-    function endRecording() {
-        recordButton.innerText = 'Stop Reminder';
-        recording = false;
-
-        // Code to end recording sound bite goes here
-        // For demonstration, let's assume the recording is stopped
-        // You may add code here to actually stop the recording if necessary
-
-        // Start the audio loop right away
-        startAudioLoop();
+    function stopRecording() {
+        recordBtn.textContent = 'Record Reminder';
     }
 
-    function stopReminder() {
-        recordButton.innerText = 'Record Reminder';
-        recording = false;
-
-        // Code to stop reminder sound goes here
-        // For demonstration, let's assume the audio loop is stopped
-        clearInterval(audioLoopInterval);
-        audioElement.pause();
+    function startLoop() {
+        isPlaying = true;
+        audioLoop.play();
+        statusText.textContent = 'Your task reminder is now playing every 30 seconds...';
+        recordBtn.textContent = 'Stop Reminder';
     }
 
-    function startAudioLoop() {
-        // Audio loop will replay every 30 seconds
-        audioLoopInterval = setInterval(function() {
-            audioElement.currentTime = 0;
-            audioElement.play();
-        }, 30000);
+    function stopLoop() {
+        isPlaying = false;
+        audioLoop.pause();
+        audioLoop.currentTime = 0;
+        statusText.textContent = '';
+        recordBtn.textContent = 'Record Reminder';
     }
 </script>
+
 </body>
 </html>
