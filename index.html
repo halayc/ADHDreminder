@@ -28,20 +28,21 @@
 <!-- 10 blank lines -->
 <div style="height: 20vh;"></div>
 
-<button id="reminder-button">Record Reminder</button>
+<button id="reminder-button">Record a Task Reminder</button>
 
 <script>
   let recording = false;
   let playingInterval;
+  let audio;
 
   function startRecording() {
     recording = true;
-    document.getElementById('reminder-button').textContent = 'End Recording';
+    document.getElementById('reminder-button').textContent = 'Play Task Reminder';
   }
 
   function stopRecording() {
     recording = false;
-    document.getElementById('reminder-button').textContent = 'Stop Reminder';
+    document.getElementById('reminder-button').textContent = 'Stop Task Reminder';
     document.getElementById('reminder-text').textContent = 'Your task reminder is now playing every 30 seconds...';
     playSoundLoop();
   }
@@ -49,7 +50,7 @@
   function playSoundLoop() {
     playingInterval = setInterval(() => {
       // Replace 'path/to/soundbite.mp3' with the path to your sound bite file
-      const audio = new Audio('path/to/soundbite.mp3');
+      audio = new Audio('path/to/soundbite.mp3');
       audio.loop = true;
       audio.play();
     }, 30000);
@@ -57,7 +58,11 @@
 
   function stopSoundLoop() {
     clearInterval(playingInterval);
-    document.getElementById('reminder-button').textContent = 'Record Reminder';
+    if (audio) {
+      audio.pause();
+      audio.currentTime = 0;
+    }
+    document.getElementById('reminder-button').textContent = 'Record a Task Reminder';
     document.getElementById('reminder-text').textContent = '';
   }
 
