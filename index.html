@@ -5,98 +5,63 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ADHD Reminder</title>
 <style>
-    body {
-        font-family: Arial, sans-serif;
-        text-align: center;
-    }
-    button {
-        padding: 10px 20px;
-        font-size: 16px;
-        cursor: pointer;
-    }
+  body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+  }
+  #reminder-button {
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+  }
 </style>
 </head>
 <body>
-
 <h1>ADHD Reminder</h1>
-
-<button id="recordBtn">Record Reminder</button>
-
-<audio id="audioLoop" loop>
-    <!-- Placeholder for audio source -->
-</audio>
-
-<p id="statusText"></p>
+<div id="reminder-text"></div>
+<button id="reminder-button">Record Reminder</button>
 
 <script>
-    let isRecording = false;
-    let isPlaying = false;
-    let audioLoop = document.getElementById('audioLoop');
-    let recordBtn = document.getElementById('recordBtn');
-    let statusText = document.getElementById('statusText');
+  let recording = false;
+  let playingInterval;
 
-    recordBtn.addEventListener('click', function() {
-        if (isRecording) {
-            // End recording
-            isRecording = false;
-            stopRecording();
-        } else {
-            // Start recording
-            isRecording = true;
-            startRecording();
-        }
-    });
+  function startRecording() {
+    recording = true;
+    document.getElementById('reminder-button').textContent = 'End Recording';
+  }
 
-    function startRecording() {
-        if (isPlaying) {
-            stopLoop();
-        }
-        recordBtn.textContent = 'End Recording';
-        statusText.textContent = '';
-        navigator.mediaDevices.getUserMedia({ audio: true })
-        .then(function(stream) {
-            let mediaRecorder = new MediaRecorder(stream);
-            let chunks = [];
-            mediaRecorder.ondataavailable = function(e) {
-                chunks.push(e.data);
-            }
-            mediaRecorder.onstop = function() {
-                let blob = new Blob(chunks, { 'type': 'audio/wav' });
-                let audioUrl = URL.createObjectURL(blob);
-                audioLoop.src = audioUrl;
-                if (!isPlaying) {
-                    startLoop();
-                }
-            }
-            mediaRecorder.start();
-            setTimeout(function() {
-                mediaRecorder.stop();
-            }, 3000); // Adjust recording duration as needed
-        })
-        .catch(function(err) {
-            console.error('Error accessing microphone:', err);
-        });
+  function stopRecording() {
+    recording = false;
+    document.getElementById('reminder-button').textContent = 'Stop Reminder';
+    document.getElementById('reminder-text').textContent = 'Your task reminder is now playing every 30 seconds...';
+    playSoundLoop();
+  }
+
+  function playSoundLoop() {
+    playingInterval = setInterval(() => {
+      // Replace 'path/to/soundbite.mp3' with the path to your sound bite file
+      const audio = new Audio('path/to/soundbite.mp3');
+      audio.loop = true;
+      audio.play();
+    }, 30000);
+  }
+
+  function stopSoundLoop() {
+    clearInterval(playingInterval);
+    document.getElementById('reminder-button').textContent = 'Record Reminder';
+    document.getElementById('reminder-text').textContent = '';
+  }
+
+  document.getElementById('reminder-button').addEventListener('click', function() {
+    if (!recording) {
+      if (playingInterval) {
+        stopSoundLoop();
+      }
+      startRecording();
+    } else {
+      stopRecording();
     }
-
-    function stopRecording() {
-        recordBtn.textContent = 'Record Reminder';
-    }
-
-    function startLoop() {
-        isPlaying = true;
-        audioLoop.play();
-        statusText.textContent = 'Your task reminder is now playing every 30 seconds...';
-        recordBtn.textContent = 'Stop Reminder';
-    }
-
-    function stopLoop() {
-        isPlaying = false;
-        audioLoop.pause();
-        audioLoop.currentTime = 0;
-        statusText.textContent = '';
-        recordBtn.textContent = 'Record Reminder';
-    }
+  });
 </script>
-
 </body>
 </html>
