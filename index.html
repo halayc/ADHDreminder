@@ -1,81 +1,61 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ADHD Reminder</title>
-<style>
-  body {
-    font-family: Arial, sans-serif;
-    text-align: center;
-    margin: 0;
-    padding: 0;
-  }
-  #reminder-button {
-    padding: 10px 20px;
-    font-size: 16px;
-    cursor: pointer;
-  }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ADHD Reminder</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+    }
+
+    #controls {
+      margin-bottom: 20px;
+    }
+
+    button {
+      margin-left: 10px;
+    }
+  </style>
 </head>
 <body>
+  <h1>ADHD Reminder</h1>
+  <div id="controls">
+    <label for="taskTime">Task Time (minutes):</label>
+    <input type="number" id="taskTime" min="1" step="1">
+    <button onclick="startTask()">Start Task</button>
+    <button onclick="stopTask()">Stop Task</button>
+  </div>
+  <audio id="audio" preload="auto">
+    <source src="soundbite.mp3" type="audio/mpeg">
+  </audio>
+  <script>
+    let taskTimer;
 
-<!-- 15 blank lines -->
-<div style="height: 30vh;"></div>
-
-<h1>ADHD Reminder</h1>
-
-<!-- 10 blank lines -->
-<div style="height: 20vh;"></div>
-
-<button id="reminder-button">Record a Task Reminder</button>
-
-<script>
-  let recording = false;
-  let playingInterval;
-  let audio;
-
-  function startRecording() {
-    recording = true;
-    document.getElementById('reminder-button').textContent = 'Play Task Reminder';
-  }
-
-  function stopRecording() {
-    recording = false;
-    document.getElementById('reminder-button').textContent = 'Stop Task Reminder';
-    document.getElementById('reminder-text').textContent = 'Your task reminder is now playing every 30 seconds...';
-    playSoundLoop();
-  }
-
-  function playSoundLoop() {
-    playingInterval = setInterval(() => {
-      // Replace 'path/to/soundbite.mp3' with the path to your sound bite file
-      audio = new Audio('path/to/soundbite.mp3');
-      audio.loop = true;
-      audio.play();
-    }, 30000);
-  }
-
-  function stopSoundLoop() {
-    clearInterval(playingInterval);
-    if (audio) {
-      audio.pause();
-      audio.currentTime = 0;
-    }
-    document.getElementById('reminder-button').textContent = 'Record a Task Reminder';
-    document.getElementById('reminder-text').textContent = '';
-  }
-
-  document.getElementById('reminder-button').addEventListener('click', function() {
-    if (!recording) {
-      if (playingInterval) {
-        stopSoundLoop();
+    function startTask() {
+      const taskTime = parseInt(document.getElementById('taskTime').value, 10);
+      if (taskTime <= 0 || isNaN(taskTime)) {
+        alert('Please enter a valid task time.');
+        return;
       }
-      startRecording();
-    } else {
-      stopRecording();
+
+      const audio = document.getElementById('audio');
+      audio.loop = true;
+
+      const interval = 30 * 1000; // 30 seconds
+      taskTimer = setInterval(() => {
+        audio.play();
+      }, interval);
+
+      setTimeout(() => {
+        stopTask();
+        alert('Task time limit reached!');
+      }, taskTime * 60 * 1000);
     }
-  });
-</script>
+
+    function stopTask() {
+      clearInterval(taskTimer);
+    }
+  </script>
 </body>
 </html>
