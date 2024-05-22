@@ -16,45 +16,95 @@
     button {
       margin-left: 10px;
     }
+
+    #reminderText {
+      display: none;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
   <h1>ADHD Reminder</h1>
   <div id="controls">
-    <label for="taskTime">Task Time (minutes):</label>
-    <input type="number" id="taskTime" min="1" step="1">
-    <button onclick="startTask()">Start Task</button>
-    <button onclick="stopTask()">Stop Task</button>
+    <button id="recordButton" onclick="toggleRecording()">Record the name of your task</button>
+    <button id="playButton" style="display: none;" onclick="startPlaying()">Play task reminder</button>
+    <button id="stopButton" style="display: none;" onclick="stopPlaying()">Stop task reminder</button>
   </div>
+  <div id="reminderText"></div>
+
   <audio id="audio" preload="auto">
-    <source src="soundbite.mp3" type="audio/mpeg">
+    <source src="" type="audio/mpeg">
   </audio>
+
   <script>
+    let recording = false;
+    let audio;
+    let recorder;
+    let recordedChunks = [];
     let taskTimer;
 
-    function startTask() {
-      const taskTime = parseInt(document.getElementById('taskTime').value, 10);
-      if (taskTime <= 0 || isNaN(taskTime)) {
-        alert('Please enter a valid task time.');
-        return;
+    function toggleRecording() {
+      if (recording) {
+        stopRecording();
+      } else {
+        startRecording();
       }
+    }
 
-      const audio = document.getElementById('audio');
+    function startRecording() {
+      recording = true;
+      document.getElementById('recordButton').innerText = 'Recording...';
+      navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(stream => {
+          audio = new Audio();
+          audio.srcObject = stream;
+          recorder = new MediaRecorder(stream);
+          recorder.ondataavailable = event => {
+            recordedChunks.push(event.data);
+          };
+          recorder.onstop = () => {
+            stream.getTracks().forEach(track => track.stop());
+            recording = false;
+            document.getElementById('recordButton').innerText = 'Done!';
+            document.getElementById('playButton').style.display = 'inline';
+          };
+          recorder.start();
+          setTimeout(stopRecording, 30000); // Stop recording after 30 seconds
+        });
+    }
+
+    function stopRecording() {
+      if (recorder.state === 'recording') {
+        recorder.stop();
+      }
+    }
+
+    function startPlaying() {
+      const blob = new Blob(recordedChunks, { type: 'audio/webm' });
+      const url = URL.createObjectURL(blob);
+      audio = document.getElementById('audio');
+      audio.src = url;
       audio.loop = true;
-
-      const interval = 30 * 1000; // 30 seconds
-      taskTimer = setInterval(() => {
-        audio.play();
-      }, interval);
-
-      setTimeout(() => {
-        stopTask();
+      audio.play();
+      document.getElementById('playButton').style.display = 'none';
+      document.getElementById('stopButton').style.display = 'inline';
+      document.getElementById('reminderText').innerText = 'Your task reminder is now playing every 30 seconds...';
+      document.getElementById('reminderText').style.display = 'block';
+      const taskTime = parseInt(document.getElementById('taskTime').value, 10);
+      taskTimer = setTimeout(() => {
+        stopPlaying();
         alert('Task time limit reached!');
       }, taskTime * 60 * 1000);
     }
 
-    function stopTask() {
-      clearInterval(taskTimer);
+    function stopPlaying() {
+      if (audio && !audio.paused) {
+        audio.pause();
+      }
+      clearTimeout(taskTimer);
+      document.getElementById('playButton').style.display = 'inline';
+      document.getElementById('stopButton').style.display = 'none';
+      document.getElementById('reminderText').style.display = 'none';
     }
   </script>
 </body>
