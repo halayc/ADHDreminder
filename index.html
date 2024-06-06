@@ -1,111 +1,59 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ADHD Reminder</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-    }
-
-    #controls {
-      margin-bottom: 20px;
-    }
-
-    button {
-      margin-left: 10px;
-    }
-
-    #reminderText {
-      display: none;
-      margin-top: 10px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Recorder</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        button {
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+    </style>
 </head>
 <body>
-  <h1>ADHD Reminder</h1>
-  <div id="controls">
-    <button id="recordButton" onclick="toggleRecording()">Record the name of your task</button>
-    <button id="playButton" style="display: none;" onclick="startPlaying()">Play task reminder</button>
-    <button id="stopButton" style="display: none;" onclick="stopPlaying()">Stop task reminder</button>
-  </div>
-  <div id="reminderText"></div>
+    <h1>Task Recorder</h1>
+    <button id="recordButton">Record Task</button>
+    <button id="playButton" disabled>Play Task</button>
 
-  <audio id="audio" preload="auto">
-    <source src="" type="audio/mpeg">
-  </audio>
+    <script>
+        let mediaRecorder;
+        let audioChunks = [];
 
-  <script>
-    let recording = false;
-    let audio;
-    let recorder;
-    let recordedChunks = [];
-    let taskTimer;
+        const recordButton = document.getElementById('recordButton');
+        const playButton = document.getElementById('playButton');
 
-    function toggleRecording() {
-      if (recording) {
-        stopRecording();
-      } else {
-        startRecording();
-      }
-    }
+        recordButton.addEventListener('click', async () => {
+            if (!mediaRecorder || mediaRecorder.state === 'inactive') {
+                audioChunks = [];
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
 
-    function startRecording() {
-      recording = true;
-      document.getElementById('recordButton').innerText = 'Recording...';
-      navigator.mediaDevices.getUserMedia({ audio: true })
-        .then(stream => {
-          audio = new Audio();
-          audio.srcObject = stream;
-          recorder = new MediaRecorder(stream);
-          recorder.ondataavailable = event => {
-            recordedChunks.push(event.data);
-          };
-          recorder.onstop = () => {
-            stream.getTracks().forEach(track => track.stop());
-            recording = false;
-            document.getElementById('recordButton').innerText = 'Done!';
-            document.getElementById('playButton').style.display = 'inline';
-          };
-          recorder.start();
-          setTimeout(stopRecording, 30000); // Stop recording after 30 seconds
+                mediaRecorder.ondataavailable = event => {
+                    audioChunks.push(event.data);
+                };
+
+                mediaRecorder.onstop = () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    const audio = new Audio(audioUrl);
+                    playButton.onclick = () => audio.play();
+                    playButton.disabled = false;
+                };
+
+                mediaRecorder.start();
+                recordButton.innerText = 'Stop Recording';
+            } else if (mediaRecorder.state === 'recording') {
+                mediaRecorder.stop();
+                recordButton.innerText = 'Record Task';
+            }
         });
-    }
-
-    function stopRecording() {
-      if (recorder.state === 'recording') {
-        recorder.stop();
-      }
-    }
-
-    function startPlaying() {
-      const blob = new Blob(recordedChunks, { type: 'audio/webm' });
-      const url = URL.createObjectURL(blob);
-      audio = document.getElementById('audio');
-      audio.src = url;
-      audio.loop = true;
-      audio.play();
-      document.getElementById('playButton').style.display = 'none';
-      document.getElementById('stopButton').style.display = 'inline';
-      document.getElementById('reminderText').innerText = 'Your task reminder is now playing every 30 seconds...';
-      document.getElementById('reminderText').style.display = 'block';
-      const taskTime = parseInt(document.getElementById('taskTime').value, 10);
-      taskTimer = setTimeout(() => {
-        stopPlaying();
-        alert('Task time limit reached!');
-      }, taskTime * 60 * 1000);
-    }
-
-    function stopPlaying() {
-      if (audio && !audio.paused) {
-        audio.pause();
-      }
-      clearTimeout(taskTimer);
-      document.getElementById('playButton').style.display = 'inline';
-      document.getElementById('stopButton').style.display = 'none';
-      document.getElementById('reminderText').style.display = 'none';
-    }
-  </script>
+    </script>
 </body>
 </html>
