@@ -76,7 +76,7 @@ function playLoop() {
       audioElement.pause();
       audioElement.currentTime = 0;
       playSilence();
-    }, audioElement.duration * 1000 + 60000); // Add a minute of silence
+    }, audioElement.duration * 1000 + 20000); // Reduced pause to 20 seconds
   }
 }
 
