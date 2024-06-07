@@ -3,15 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sound Recorder</title>
+    <title>Automatic Sound Playback</title>
 </head>
 <body>
     <h1>Record a Sound Bite</h1>
     <button id="startRecording">Start Recording</button>
     <button id="stopRecording" disabled>Stop Recording</button>
-    <button id="playRecording" disabled>Play Recording</button>
-    <button id="playSilence">Play 1 Minute of Silence</button>
-    <button id="playRecordingAgain" disabled>Play Recording Again</button>
 
     <script>
         let mediaRecorder;
@@ -21,15 +18,9 @@
 
         const startRecordingButton = document.getElementById('startRecording');
         const stopRecordingButton = document.getElementById('stopRecording');
-        const playRecordingButton = document.getElementById('playRecording');
-        const playSilenceButton = document.getElementById('playSilence');
-        const playRecordingAgainButton = document.getElementById('playRecordingAgain');
 
         startRecordingButton.addEventListener('click', startRecording);
         stopRecordingButton.addEventListener('click', stopRecording);
-        playRecordingButton.addEventListener('click', playRecording);
-        playSilenceButton.addEventListener('click', playSilence);
-        playRecordingAgainButton.addEventListener('click', playRecordingAgain);
 
         function startRecording() {
             navigator.mediaDevices.getUserMedia({ audio: true })
@@ -44,13 +35,12 @@
                         const audioBlob = new Blob(recordedChunks, { type: 'audio/webm' });
                         const audioUrl = URL.createObjectURL(audioBlob);
                         audioPlayer.src = audioUrl;
-                        enableButtons();
+                        audioPlayer.play();
+                        setTimeout(playSilence, audioPlayer.duration * 1000 + 1000); // Add 1 second for safety
                     };
                     mediaRecorder.start();
                     startRecordingButton.disabled = true;
                     stopRecordingButton.disabled = false;
-                    playRecordingButton.disabled = true;
-                    playRecordingAgainButton.disabled = true;
                 })
                 .catch(function(err) {
                     console.error('Error accessing microphone:', err);
@@ -61,12 +51,6 @@
             mediaRecorder.stop();
             startRecordingButton.disabled = false;
             stopRecordingButton.disabled = true;
-            playRecordingButton.disabled = false;
-            playRecordingAgainButton.disabled = false;
-        }
-
-        function playRecording() {
-            audioPlayer.play();
         }
 
         function playSilence() {
@@ -76,15 +60,6 @@
             source.buffer = silence;
             source.connect(audioContext.destination);
             source.start();
-        }
-
-        function playRecordingAgain() {
-            audioPlayer.play();
-        }
-
-        function enableButtons() {
-            playRecordingButton.disabled = false;
-            playRecordingAgainButton.disabled = false;
         }
     </script>
 </body>
