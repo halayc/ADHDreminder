@@ -15,6 +15,9 @@
             padding: 10px 20px;
             font-size: 16px;
         }
+        button:disabled {
+            opacity: 0.5;
+        }
     </style>
 </head>
 <body>
@@ -73,7 +76,6 @@
 
                         playButton.onclick = () => audio.play();
                         playButton.disabled = false;
-                        playButton.style.opacity = 1; // Ensure button is not greyed out
                     };
 
                     reader.readAsArrayBuffer(audioBlob);
