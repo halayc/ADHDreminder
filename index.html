@@ -73,6 +73,7 @@
 
                         playButton.onclick = () => audio.play();
                         playButton.disabled = false;
+                        playButton.style.backgroundColor = ""; // Ensure button is not greyed out
                     };
 
                     reader.readAsArrayBuffer(audioBlob);
