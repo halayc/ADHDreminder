@@ -3,21 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Automatic Sound Playback</title>
+    <title>Sound Recorder</title>
 </head>
 <body>
     <h1>Record a Sound Bite</h1>
     <button id="startRecording">Start Recording</button>
     <button id="stopRecording" disabled>Stop Recording</button>
+    <audio id="recordedAudio" controls></audio>
 
     <script>
         let mediaRecorder;
         let recordedChunks = [];
-        let audioPlayer = new Audio();
-        let isRecording = false;
 
         const startRecordingButton = document.getElementById('startRecording');
         const stopRecordingButton = document.getElementById('stopRecording');
+        const recordedAudio = document.getElementById('recordedAudio');
 
         startRecordingButton.addEventListener('click', startRecording);
         stopRecordingButton.addEventListener('click', stopRecording);
@@ -32,11 +32,9 @@
                         }
                     };
                     mediaRecorder.onstop = function() {
-                        const audioBlob = new Blob(recordedChunks, { type: 'audio/webm' });
+                        const audioBlob = new Blob(recordedChunks, { type: 'audio/wav' });
                         const audioUrl = URL.createObjectURL(audioBlob);
-                        audioPlayer.src = audioUrl;
-                        audioPlayer.play();
-                        setTimeout(playSilence, audioPlayer.duration * 1000 + 1000); // Add 1 second for safety
+                        recordedAudio.src = audioUrl;
                     };
                     mediaRecorder.start();
                     startRecordingButton.disabled = true;
@@ -52,15 +50,7 @@
             startRecordingButton.disabled = false;
             stopRecordingButton.disabled = true;
         }
-
-        function playSilence() {
-            const audioContext = new AudioContext();
-            const silence = audioContext.createBuffer(1, audioContext.sampleRate * 60, audioContext.sampleRate);
-            const source = audioContext.createBufferSource();
-            source.buffer = silence;
-            source.connect(audioContext.destination);
-            source.start();
-        }
     </script>
 </body>
 </html>
+
