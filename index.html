@@ -7,26 +7,50 @@
 </head>
 <body>
     <h1>Record a Sound Bite</h1>
-    <button onclick="startRecording()">Start Recording</button>
-    <button onclick="stopRecording()">Stop Recording</button>
-    <button onclick="playRecording()">Play Recording</button>
-    <button onclick="playSilence()">Play 1 Minute of Silence</button>
-    <button onclick="playRecording()">Play Recording Again</button>
-    
+    <button id="startRecording">Start Recording</button>
+    <button id="stopRecording" disabled>Stop Recording</button>
+    <button id="playRecording" disabled>Play Recording</button>
+    <button id="playSilence">Play 1 Minute of Silence</button>
+    <button id="playRecordingAgain" disabled>Play Recording Again</button>
+
     <script>
-        let chunks = [];
         let mediaRecorder;
-        let audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        let audioBuffer;
+        let recordedChunks = [];
+        let audioPlayer = new Audio();
+        let isRecording = false;
+
+        const startRecordingButton = document.getElementById('startRecording');
+        const stopRecordingButton = document.getElementById('stopRecording');
+        const playRecordingButton = document.getElementById('playRecording');
+        const playSilenceButton = document.getElementById('playSilence');
+        const playRecordingAgainButton = document.getElementById('playRecordingAgain');
+
+        startRecordingButton.addEventListener('click', startRecording);
+        stopRecordingButton.addEventListener('click', stopRecording);
+        playRecordingButton.addEventListener('click', playRecording);
+        playSilenceButton.addEventListener('click', playSilence);
+        playRecordingAgainButton.addEventListener('click', playRecordingAgain);
 
         function startRecording() {
             navigator.mediaDevices.getUserMedia({ audio: true })
                 .then(function(stream) {
                     mediaRecorder = new MediaRecorder(stream);
-                    mediaRecorder.ondataavailable = function(event) {
-                        chunks.push(event.data);
+                    mediaRecorder.ondataavailable = function(e) {
+                        if (e.data.size > 0) {
+                            recordedChunks.push(e.data);
+                        }
+                    };
+                    mediaRecorder.onstop = function() {
+                        const audioBlob = new Blob(recordedChunks, { type: 'audio/webm' });
+                        const audioUrl = URL.createObjectURL(audioBlob);
+                        audioPlayer.src = audioUrl;
+                        enableButtons();
                     };
                     mediaRecorder.start();
+                    startRecordingButton.disabled = true;
+                    stopRecordingButton.disabled = false;
+                    playRecordingButton.disabled = true;
+                    playRecordingAgainButton.disabled = true;
                 })
                 .catch(function(err) {
                     console.error('Error accessing microphone:', err);
@@ -35,37 +59,32 @@
 
         function stopRecording() {
             mediaRecorder.stop();
-            mediaRecorder.onstop = function() {
-                const blob = new Blob(chunks, { type: 'audio/wav' });
-                chunks = [];
-                const reader = new FileReader();
-                reader.onload = function() {
-                    audioContext.decodeAudioData(reader.result, function(buffer) {
-                        audioBuffer = buffer;
-                    });
-                };
-                reader.readAsArrayBuffer(blob);
-            };
+            startRecordingButton.disabled = false;
+            stopRecordingButton.disabled = true;
+            playRecordingButton.disabled = false;
+            playRecordingAgainButton.disabled = false;
         }
 
         function playRecording() {
-            if (audioBuffer) {
-                const source = audioContext.createBufferSource();
-                source.buffer = audioBuffer;
-                source.connect(audioContext.destination);
-                source.start();
-            } else {
-                console.error('No recorded audio available.');
-            }
+            audioPlayer.play();
         }
 
         function playSilence() {
-            const silenceDuration = 60; // in seconds
-            const silenceBuffer = audioContext.createBuffer(1, audioContext.sampleRate * silenceDuration, audioContext.sampleRate);
+            const audioContext = new AudioContext();
+            const silence = audioContext.createBuffer(1, audioContext.sampleRate * 60, audioContext.sampleRate);
             const source = audioContext.createBufferSource();
-            source.buffer = silenceBuffer;
+            source.buffer = silence;
             source.connect(audioContext.destination);
             source.start();
+        }
+
+        function playRecordingAgain() {
+            audioPlayer.play();
+        }
+
+        function enableButtons() {
+            playRecordingButton.disabled = false;
+            playRecordingAgainButton.disabled = false;
         }
     </script>
 </body>
