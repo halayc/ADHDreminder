@@ -23,6 +23,8 @@ const stopLoopBtn = document.getElementById('stopLoop');
 
 let mediaRecorder;
 let recordedChunks = [];
+let isLoopPlaying = false;
+let timeoutId;
 
 startRecordingBtn.addEventListener('click', async () => {
   const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -52,19 +54,37 @@ stopRecordingBtn.addEventListener('click', () => {
 });
 
 playLoopBtn.addEventListener('click', () => {
-  audioElement.loop = true;
-  audioElement.play();
+  isLoopPlaying = true;
+  playLoop();
   playLoopBtn.disabled = true;
   stopLoopBtn.style.display = 'inline-block';
 });
 
 stopLoopBtn.addEventListener('click', () => {
+  clearTimeout(timeoutId);
   audioElement.pause();
   audioElement.currentTime = 0;
-  audioElement.loop = false;
+  isLoopPlaying = false;
   playLoopBtn.disabled = false;
   stopLoopBtn.style.display = 'none';
 });
+
+function playLoop() {
+  if (isLoopPlaying) {
+    audioElement.play();
+    timeoutId = setTimeout(() => {
+      audioElement.pause();
+      audioElement.currentTime = 0;
+      playSilence();
+    }, audioElement.duration * 1000 + 60000); // Add a minute of silence
+  }
+}
+
+function playSilence() {
+  setTimeout(() => {
+    playLoop();
+  }, 1000); // Play silence for a second before starting the loop again
+}
 </script>
 </body>
 </html>
