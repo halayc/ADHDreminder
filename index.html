@@ -10,14 +10,12 @@
 <button id="startRecording">Start Recording</button>
 <button id="stopRecording" disabled>Stop Recording</button>
 <br><br>
-<audio id="audio" controls></audio>
 <button id="playLoop">Play Reminder Loop</button>
 <button id="stopLoop" style="display:none;">Stop Reminder</button>
 
 <script>
 const startRecordingBtn = document.getElementById('startRecording');
 const stopRecordingBtn = document.getElementById('stopRecording');
-const audioElement = document.getElementById('audio');
 const playLoopBtn = document.getElementById('playLoop');
 const stopLoopBtn = document.getElementById('stopLoop');
 
@@ -36,11 +34,10 @@ startRecordingBtn.addEventListener('click', async () => {
   };
   mediaRecorder.onstop = () => {
     const blob = new Blob(recordedChunks, { type: 'audio/wav' });
-    const url = URL.createObjectURL(blob);
-    audioElement.src = url;
-    recordedChunks = [];
+    const audioUrl = URL.createObjectURL(blob);
     playLoopBtn.disabled = false;
     stopLoopBtn.style.display = 'inline-block';
+    playLoop(audioUrl);
   };
   mediaRecorder.start();
   startRecordingBtn.disabled = true;
@@ -57,35 +54,25 @@ playLoopBtn.addEventListener('click', () => {
   isLoopPlaying = true;
   playLoopBtn.disabled = true;
   stopLoopBtn.style.display = 'inline-block';
-  playLoop();
 });
 
 stopLoopBtn.addEventListener('click', () => {
   clearTimeout(loopIntervalId);
-  audioElement.pause();
-  audioElement.currentTime = 0;
   isLoopPlaying = false;
   playLoopBtn.disabled = false;
   stopLoopBtn.style.display = 'none';
 });
 
-function playLoop() {
-  if (isLoopPlaying) {
-    audioElement.play();
-    audioElement.addEventListener('ended', () => {
-      loopIntervalId = setTimeout(() => {
-        audioElement.pause();
-        audioElement.currentTime = 0;
-        playSilence();
-      }, 20000); // 20 seconds pause at the end of playback
-    });
-  }
-}
-
-function playSilence() {
-  setTimeout(() => {
-    playLoop();
-  }, 1000); // Play silence for a second before starting the loop again
+function playLoop(audioUrl) {
+  const audio = new Audio(audioUrl);
+  audio.play();
+  audio.addEventListener('ended', () => {
+    loopIntervalId = setTimeout(() => {
+      if (isLoopPlaying) {
+        playLoop(audioUrl);
+      }
+    }, 20000); // 20 seconds pause at the end of playback
+  });
 }
 </script>
 </body>
