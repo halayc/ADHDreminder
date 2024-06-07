@@ -34,24 +34,33 @@ let mediaRecorder;
 let recordedChunks = [];
 let isLoopPlaying = false;
 let loopIntervalId;
+let audioUrl;
 
 startRecordingBtn.addEventListener('click', async () => {
-  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-  mediaRecorder = new MediaRecorder(stream);
-  mediaRecorder.ondataavailable = e => {
-    if (e.data.size > 0) {
-      recordedChunks.push(e.data);
-    }
-  };
-  mediaRecorder.onstop = () => {
-    const blob = new Blob(recordedChunks, { type: 'audio/wav' });
-    const audioUrl = URL.createObjectURL(blob);
-    stopLoopBtn.style.display = 'inline-block'; // Show stop button after recording
-    playLoop(audioUrl);
-  };
-  mediaRecorder.start();
-  startRecordingBtn.disabled = true;
-  stopRecordingBtn.disabled = false;
+  if (mediaRecorder && mediaRecorder.state === 'recording') {
+    mediaRecorder.stop();
+    startRecordingBtn.disabled = true;
+    stopRecordingBtn.disabled = false;
+    audioUrl = undefined;
+    stopLoop();
+  } else {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    mediaRecorder = new MediaRecorder(stream);
+    mediaRecorder.ondataavailable = e => {
+      if (e.data.size > 0) {
+        recordedChunks.push(e.data);
+      }
+    };
+    mediaRecorder.onstop = () => {
+      const blob = new Blob(recordedChunks, { type: 'audio/wav' });
+      audioUrl = URL.createObjectURL(blob);
+      stopLoopBtn.style.display = 'inline-block'; // Show stop button after recording
+      playLoop(audioUrl);
+    };
+    mediaRecorder.start();
+    startRecordingBtn.disabled = true;
+    stopRecordingBtn.disabled = false;
+  }
 });
 
 stopRecordingBtn.addEventListener('click', () => {
@@ -61,9 +70,7 @@ stopRecordingBtn.addEventListener('click', () => {
 });
 
 stopLoopBtn.addEventListener('click', () => {
-  clearTimeout(loopIntervalId);
-  isLoopPlaying = false;
-  stopLoopBtn.style.display = 'none';
+  stopLoop();
 });
 
 function playLoop(audioUrl) {
@@ -76,8 +83,18 @@ function playLoop(audioUrl) {
         audio.currentTime = 0;
         audio.play();
       }
-    }, 15000); // 15 seconds pause at the end of playback
+    }, 20000); // 20 seconds pause at the end of playback
   });
+}
+
+function stopLoop() {
+  clearTimeout(loopIntervalId);
+  isLoopPlaying = false;
+  if (audioUrl) {
+    const audio = new Audio(audioUrl);
+    audio.pause();
+    audio.currentTime = 0;
+  }
 }
 </script>
 </body>
