@@ -29,39 +29,11 @@
                 const audio = document.getElementById('audioPlayback');
                 audio.src = audioUrl;
                 audio.onended = () => {
-                    if (isPlayingLoop) {
-                        setTimeout(() => {
+                    if (!isPlayingLoop) {
+                        isPlayingLoop = true;
+                        loopInterval = setInterval(() => {
                             audio.play();
-                        }, 1000); // Delay for 1 second before playing the loop
-                    }
-                };
-            };
-            mediaRecorder.start();
-            document.getElementById('startRecording').disabled = true;
-            document.getElementById('stopRecording').disabled = false;
-        };
-
-        const stopRecording = () => {
-            clearInterval(loopInterval);
-            mediaRecorder.stop();
-            isPlayingLoop = false;
-            document.getElementById('startRecording').disabled = false;
-            document.getElementById('stopRecording').disabled = true;
-        };
-
-        const startLoop = () => {
-            isPlayingLoop = true;
-            const audio = document.getElementById('audioPlayback');
-            loopInterval = setInterval(() => {
-                audio.play();
-            }, (audio.duration + 60) * 1000); // Play the recording plus 60 seconds of silence
-            audio.play();
-        };
-
-        document.getElementById('startRecording').addEventListener('click', startRecording);
-        document.getElementById('stopRecording').addEventListener('click', stopRecording);
-        document.getElementById('audioPlayback').addEventListener('ended', startLoop);
-    </script>
-</body>
-</html>
-
+                            setTimeout(() => {
+                                audio.pause();
+                                const silence = new Audio();
+                                silence.src = 'data:audio/mp3;base64,//MgEAAAAAAQWRvYmUgR1BUNDUAAQABAwAZAAAEAQAHgAIAAAK/wAA//8AALOcAAcAAAACAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
