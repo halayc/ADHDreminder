@@ -25,7 +25,6 @@
     <script>
         let mediaRecorder;
         let audioChunks = [];
-
         const recordButton = document.getElementById('recordButton');
         const playButton = document.getElementById('playButton');
 
@@ -41,10 +40,38 @@
 
                 mediaRecorder.onstop = () => {
                     const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-                    const audioUrl = URL.createObjectURL(audioBlob);
-                    const audio = new Audio(audioUrl);
-                    playButton.onclick = () => audio.play();
-                    playButton.disabled = false;
+                    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    const reader = new FileReader();
+
+                    reader.onload = async (event) => {
+                        const audioBuffer = await audioContext.decodeAudioData(event.target.result);
+                        const silenceBuffer = audioContext.createBuffer(
+                            audioBuffer.numberOfChannels,
+                            audioContext.sampleRate * 60, // 1 minute of silence
+                            audioContext.sampleRate
+                        );
+
+                        const newBuffer = audioContext.createBuffer(
+                            audioBuffer.numberOfChannels,
+                            audioBuffer.length + silenceBuffer.length,
+                            audioContext.sampleRate
+                        );
+
+                        for (let i = 0; i < audioBuffer.numberOfChannels; i++) {
+                            const channelData = newBuffer.getChannelData(i);
+                            channelData.set(audioBuffer.getChannelData(i), 0);
+                            channelData.set(silenceBuffer.getChannelData(i), audioBuffer.length);
+                        }
+
+                        const newAudioBlob = new Blob([newBuffer.getChannelData(0)], { type: 'audio/wav' });
+                        const newAudioUrl = URL.createObjectURL(newAudioBlob);
+                        const audio = new Audio(newAudioUrl);
+
+                        playButton.onclick = () => audio.play();
+                        playButton.disabled = false;
+                    };
+
+                    reader.readAsArrayBuffer(audioBlob);
                 };
 
                 mediaRecorder.start();
