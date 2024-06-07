@@ -3,10 +3,21 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sound Reminder App</title>
+<style>
+  body {
+    text-align: center;
+  }
+  h1 {
+    margin-top: 20px;
+  }
+  button {
+    margin: 10px;
+  }
+</style>
+<title>Task reminder</title>
 </head>
 <body>
-<h1>Sound Reminder App</h1>
+<h1>Task reminder</h1>
 <button id="startRecording">Start Recording</button>
 <button id="stopRecording" disabled>Stop Recording</button>
 <br><br>
@@ -71,7 +82,7 @@ function playLoop(audioUrl) {
       if (isLoopPlaying) {
         playLoop(audioUrl);
       }
-    }, 2000); // 2 seconds pause at the end of playback
+    }, 20000); // 20 seconds pause at the end of playback
   });
 }
 </script>
