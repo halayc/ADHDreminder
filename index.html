@@ -3,31 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Task Recorder</title>
+    <title>Sound Recorder</title>
 </head>
 <body>
-    <h1>Record a Task</h1>
-    <form id="taskForm">
-        <label for="task">Task Name:</label>
-        <input type="text" id="task" name="task">
-        <button type="button" onclick="recordTask()">Record Task</button>
-    </form>
+    <h1>Record a Sound Bite</h1>
+    <button onclick="startRecording()">Start Recording</button>
+    <button onclick="stopRecording()">Stop Recording</button>
+    <button onclick="playRecording()">Play Recording</button>
+    <button onclick="playSilence()">Play 1 Minute of Silence</button>
+    <button onclick="playRecording()">Play Recording Again</button>
     
     <script>
-        function recordTask() {
-            var taskName = document.getElementById('task').value;
-            if (taskName.trim() !== '') {
-                // Send task name to server (you can use AJAX here)
-                alert("You recorded the task: " + taskName);
+        let chunks = [];
+        let mediaRecorder;
+        let audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        let audioBuffer;
 
-                // Play the task name using text-to-speech (you may need a library for this)
-                // Example using the SpeechSynthesis API (modern browsers)
-                var msg = new SpeechSynthesisUtterance();
-                msg.text = taskName;
-                window.speechSynthesis.speak(msg);
+        function startRecording() {
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then(function(stream) {
+                    mediaRecorder = new MediaRecorder(stream);
+                    mediaRecorder.ondataavailable = function(event) {
+                        chunks.push(event.data);
+                    };
+                    mediaRecorder.start();
+                })
+                .catch(function(err) {
+                    console.error('Error accessing microphone:', err);
+                });
+        }
+
+        function stopRecording() {
+            mediaRecorder.stop();
+            mediaRecorder.onstop = function() {
+                const blob = new Blob(chunks, { type: 'audio/wav' });
+                chunks = [];
+                const reader = new FileReader();
+                reader.onload = function() {
+                    audioContext.decodeAudioData(reader.result, function(buffer) {
+                        audioBuffer = buffer;
+                    });
+                };
+                reader.readAsArrayBuffer(blob);
+            };
+        }
+
+        function playRecording() {
+            if (audioBuffer) {
+                const source = audioContext.createBufferSource();
+                source.buffer = audioBuffer;
+                source.connect(audioContext.destination);
+                source.start();
             } else {
-                alert("Please enter a task name.");
+                console.error('No recorded audio available.');
             }
+        }
+
+        function playSilence() {
+            const silenceDuration = 60; // in seconds
+            const silenceBuffer = audioContext.createBuffer(1, audioContext.sampleRate * silenceDuration, audioContext.sampleRate);
+            const source = audioContext.createBufferSource();
+            source.buffer = silenceBuffer;
+            source.connect(audioContext.destination);
+            source.start();
         }
     </script>
 </body>
