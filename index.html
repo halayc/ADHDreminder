@@ -51,9 +51,10 @@
                             audioContext.sampleRate
                         );
 
+                        const combinedLength = audioBuffer.length + silenceBuffer.length;
                         const newBuffer = audioContext.createBuffer(
                             audioBuffer.numberOfChannels,
-                            audioBuffer.length + silenceBuffer.length,
+                            combinedLength,
                             audioContext.sampleRate
                         );
 
@@ -63,11 +64,18 @@
                             channelData.set(silenceBuffer.getChannelData(i), audioBuffer.length);
                         }
 
-                        const newAudioBlob = new Blob([newBuffer.getChannelData(0)], { type: 'audio/wav' });
-                        const newAudioUrl = URL.createObjectURL(newAudioBlob);
-                        const audio = new Audio(newAudioUrl);
+                        const combinedBlob = new Blob([new Uint8Array(await audioContext.encodeAudioData(newBuffer))]);
 
-                        playButton.onclick = () => audio.play();
+                        const audioUrl = URL.createObjectURL(combinedBlob);
+                        const audio = new Audio(audioUrl);
+                        audio.addEventListener('ended', () => {
+                            audio.currentTime = 0;
+                            audio.play();
+                        }, { once: true });
+
+                        playButton.onclick = () => {
+                            audio.play();
+                        };
                         playButton.disabled = false;
                     };
 
