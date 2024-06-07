@@ -72,13 +72,20 @@ stopLoopBtn.addEventListener('click', () => {
 function playLoop() {
   if (isLoopPlaying) {
     audioElement.play();
-    loopIntervalId = setTimeout(() => {
-      audioElement.pause();
-      audioElement.currentTime = 0;
-      playSilence();
-    }, audioElement.duration * 1000 + 20000); // Add 30 seconds of silence
+    audioElement.addEventListener('ended', () => {
+      loopIntervalId = setTimeout(() => {
+        audioElement.pause();
+        audioElement.currentTime = 0;
+        playSilence();
+      }, 20000); // 20 seconds pause at the end of playback
+    });
   }
+}
 
+function playSilence() {
+  setTimeout(() => {
+    playLoop();
+  }, 1000); // Play silence for a second before starting the loop again
 }
 </script>
 </body>
