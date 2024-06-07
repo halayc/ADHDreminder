@@ -4,60 +4,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Task Recorder</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin: 20px;
-        }
-        button {
-            margin: 10px;
-            padding: 10px 20px;
-            font-size: 16px;
-        }
-        button:disabled {
-            opacity: 0.5;
-        }
-    </style>
 </head>
 <body>
-    <h1>Task Recorder</h1>
-    <button id="recordButton">Record Task</button>
-    <button id="playButton" disabled>Play Task</button>
-
+    <h1>Record a Task</h1>
+    <form id="taskForm">
+        <label for="task">Task Name:</label>
+        <input type="text" id="task" name="task">
+        <button type="button" onclick="recordTask()">Record Task</button>
+    </form>
+    
     <script>
-        let mediaRecorder;
-        let audioChunks = [];
-        const recordButton = document.getElementById('recordButton');
-        const playButton = document.getElementById('playButton');
+        function recordTask() {
+            var taskName = document.getElementById('task').value;
+            if (taskName.trim() !== '') {
+                // Send task name to server (you can use AJAX here)
+                alert("You recorded the task: " + taskName);
 
-        recordButton.addEventListener('click', async () => {
-            if (!mediaRecorder || mediaRecorder.state === 'inactive') {
-                audioChunks = [];
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                mediaRecorder = new MediaRecorder(stream);
-
-                mediaRecorder.ondataavailable = event => {
-                    audioChunks.push(event.data);
-                };
-
-                mediaRecorder.onstop = () => {
-                    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-                    const audioUrl = URL.createObjectURL(audioBlob);
-                    const audio = new Audio(audioUrl);
-                    audio.loop = true;
-
-                    playButton.onclick = () => audio.play();
-                    playButton.disabled = false;
-                };
-
-                mediaRecorder.start();
-                recordButton.innerText = 'Stop Recording';
-            } else if (mediaRecorder.state === 'recording') {
-                mediaRecorder.stop();
-                recordButton.innerText = 'Record Task';
+                // Play the task name using text-to-speech (you may need a library for this)
+                // Example using the SpeechSynthesis API (modern browsers)
+                var msg = new SpeechSynthesisUtterance();
+                msg.text = taskName;
+                window.speechSynthesis.speak(msg);
+            } else {
+                alert("Please enter a task name.");
             }
-        });
+        }
     </script>
 </body>
 </html>
