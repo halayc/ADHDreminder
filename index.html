@@ -1,39 +1,70 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sound Recorder</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sound Reminder App</title>
 </head>
 <body>
-    <h1>Sound Recorder</h1>
-    <button id="startRecording">Start Recording</button>
-    <button id="stopRecording" disabled>Stop Recording</button>
-    <audio controls id="audioPlayback"></audio>
+<h1>Sound Reminder App</h1>
+<button id="startRecording">Start Recording</button>
+<button id="stopRecording" disabled>Stop Recording</button>
+<br><br>
+<audio id="audio" controls></audio>
+<button id="playLoop">Play Reminder Loop</button>
+<button id="stopLoop" style="display:none;">Stop Reminder</button>
 
-    <script>
-        let mediaRecorder;
-        let audioChunks = [];
-        let isPlayingLoop = false;
-        let loopInterval;
+<script>
+const startRecordingBtn = document.getElementById('startRecording');
+const stopRecordingBtn = document.getElementById('stopRecording');
+const audioElement = document.getElementById('audio');
+const playLoopBtn = document.getElementById('playLoop');
+const stopLoopBtn = document.getElementById('stopLoop');
 
-        const startRecording = async () => {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            mediaRecorder = new MediaRecorder(stream);
-            mediaRecorder.ondataavailable = event => {
-                audioChunks.push(event.data);
-            };
-            mediaRecorder.onstop = () => {
-                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                const audioUrl = URL.createObjectURL(audioBlob);
-                const audio = document.getElementById('audioPlayback');
-                audio.src = audioUrl;
-                audio.onended = () => {
-                    if (!isPlayingLoop) {
-                        isPlayingLoop = true;
-                        loopInterval = setInterval(() => {
-                            audio.play();
-                            setTimeout(() => {
-                                audio.pause();
-                                const silence = new Audio();
-                                silence.src = 'data:audio/mp3;base64,//MgEAAAAAAQWRvYmUgR1BUNDUAAQABAwAZAAAEAQAHgAIAAAK/wAA//8AALOcAAcAAAACAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+let mediaRecorder;
+let recordedChunks = [];
+
+startRecordingBtn.addEventListener('click', async () => {
+  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  mediaRecorder = new MediaRecorder(stream);
+  mediaRecorder.ondataavailable = e => {
+    if (e.data.size > 0) {
+      recordedChunks.push(e.data);
+    }
+  };
+  mediaRecorder.onstop = () => {
+    const blob = new Blob(recordedChunks, { type: 'audio/wav' });
+    const url = URL.createObjectURL(blob);
+    audioElement.src = url;
+    recordedChunks = [];
+    playLoopBtn.disabled = false;
+    stopLoopBtn.style.display = 'inline-block';
+  };
+  mediaRecorder.start();
+  startRecordingBtn.disabled = true;
+  stopRecordingBtn.disabled = false;
+});
+
+stopRecordingBtn.addEventListener('click', () => {
+  mediaRecorder.stop();
+  startRecordingBtn.disabled = false;
+  stopRecordingBtn.disabled = true;
+});
+
+playLoopBtn.addEventListener('click', () => {
+  audioElement.loop = true;
+  audioElement.play();
+  playLoopBtn.disabled = true;
+  stopLoopBtn.style.display = 'inline-block';
+});
+
+stopLoopBtn.addEventListener('click', () => {
+  audioElement.pause();
+  audioElement.currentTime = 0;
+  audioElement.loop = false;
+  playLoopBtn.disabled = false;
+  stopLoopBtn.style.display = 'none';
+});
+</script>
+</body>
+</html>
