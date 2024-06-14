@@ -35,6 +35,7 @@ let recordedChunks = [];
 let isLoopPlaying = false;
 let loopIntervalId;
 let audioUrl;
+let audio; // Define the audio variable globally
 
 startRecordingBtn.addEventListener('click', async () => {
   if (mediaRecorder && mediaRecorder.state === 'recording') {
@@ -47,6 +48,7 @@ startRecordingBtn.addEventListener('click', async () => {
       URL.revokeObjectURL(audioUrl);
       recordedChunks = [];
       audioUrl = undefined;
+      stopLoop(); // Stop the loop when starting a new recording
     }
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     mediaRecorder = new MediaRecorder(stream);
@@ -78,7 +80,7 @@ stopLoopBtn.addEventListener('click', () => {
 });
 
 function playLoop(audioUrl) {
-  const audio = new Audio(audioUrl);
+  audio = new Audio(audioUrl);
   audio.play();
   isLoopPlaying = true;
   audio.addEventListener('ended', () => {
@@ -94,8 +96,7 @@ function playLoop(audioUrl) {
 function stopLoop() {
   clearTimeout(loopIntervalId);
   isLoopPlaying = false;
-  if (audioUrl) {
-    const audio = new Audio(audioUrl);
+  if (audio) {
     audio.pause();
     audio.currentTime = 0;
   }
