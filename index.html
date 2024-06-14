@@ -41,9 +41,13 @@ startRecordingBtn.addEventListener('click', async () => {
     mediaRecorder.stop();
     startRecordingBtn.disabled = true;
     stopRecordingBtn.disabled = false;
-    audioUrl = undefined;
     stopLoop();
   } else {
+    if (audioUrl) {
+      URL.revokeObjectURL(audioUrl);
+      recordedChunks = [];
+      audioUrl = undefined;
+    }
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     mediaRecorder = new MediaRecorder(stream);
     mediaRecorder.ondataavailable = e => {
