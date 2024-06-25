@@ -15,13 +15,8 @@
   button {
     margin: 10px;
   }
-  /* Styling for the ad container */
-  .ad-container {
-    margin-top: 20px;
-  }
   .spacer {
-    line-height: 1;
-    margin-top: 20px;
+    height: 20em; /* Adjust this value if needed */
   }
 </style>
 <title>Task Reminder</title>
@@ -49,9 +44,7 @@
 </div>
 
 <!-- Spacer to add 20 lines of space -->
-<div class="spacer">
-  <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
-</div>
+<div class="spacer"></div>
 
 <p>test</p>
 
@@ -102,7 +95,7 @@ startRecordingBtn.addEventListener('click', async () => {
 stopRecordingBtn.addEventListener('click', () => {
   mediaRecorder.stop();
   startRecordingBtn.disabled = false;
-  stopRecordingBtn.disabled = true;
+  stopRecordingBtn.disabled = true);
 });
 
 stopLoopBtn.addEventListener('click', () => {
