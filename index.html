@@ -15,8 +15,9 @@
   button {
     margin: 10px;
   }
-  .spacer {
-    height: 5em; /* Adjust this value if needed */
+  /* Styling for the ad container */
+  .ad-container {
+    margin-top: 20px;
   }
 </style>
 <title>Task Reminder</title>
@@ -42,11 +43,6 @@
     (adsbygoogle = window.adsbygoogle || []).push({});
   </script>
 </div>
-
-<!-- Spacer to add 20 lines of space -->
-<div class="spacer"></div>
-
-<p>test</p>
 
 <script>
 const startRecordingBtn = document.getElementById('startRecording');
@@ -95,7 +91,7 @@ startRecordingBtn.addEventListener('click', async () => {
 stopRecordingBtn.addEventListener('click', () => {
   mediaRecorder.stop();
   startRecordingBtn.disabled = false;
-  stopRecordingBtn.disabled = true);
+  stopRecordingBtn.disabled = true;
 });
 
 stopLoopBtn.addEventListener('click', () => {
