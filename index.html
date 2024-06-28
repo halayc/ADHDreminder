@@ -52,7 +52,7 @@
   }
   /* Progress bar styling */
   #progressBar {
-    width: 100%;
+    width: 0; /* Will be set dynamically to match the title width */
     background-color: #f3f3f3;
     margin-top: 10px;
     display: none; /* Hide by default */
@@ -70,15 +70,15 @@
 <title>Task Reminder</title>
 </head>
 <body>
-<h1>Task Reminder</h1>
+<h1 id="appTitle">Task Reminder</h1>
 <p></p>
 <button id="startStopRecording">Start Recording</button>
 <br><br>
 <button id="stopLoop" style="display:none;">Stop Reminder</button>
 <!-- Text displayed during recording -->
 <div id="recordingText">
-  Say the name of the task you want to complete.<br>
-  The name of the task will be played on a loop until you've completed it.
+  Say a short description of the task you want to complete.<br>
+  It will be played on a loop until you've completed the task.
 </div>
 <!-- Progress bar element -->
 <div id="progressBar">
@@ -125,6 +125,7 @@ const stopLoopBtn = document.getElementById('stopLoop');
 const progressBar = document.getElementById('progressBar');
 const progress = document.getElementById('progress');
 const recordingText = document.getElementById('recordingText');
+const appTitle = document.getElementById('appTitle');
 
 let mediaRecorder;
 let recordedChunks = [];
@@ -172,6 +173,7 @@ startStopRecordingBtn.addEventListener('click', async () => {
     startStopRecordingBtn.textContent = 'Stop Recording';
     progressBar.style.display = 'block';
     recordingText.style.display = 'block';
+    progressBar.style.width = `${appTitle.offsetWidth}px`;
     progressInterval = setInterval(updateProgressBar, 100);
     setTimeout(() => {
       if (mediaRecorder.state === 'recording') {
