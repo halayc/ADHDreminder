@@ -50,6 +50,17 @@
       margin: 0 10px;
     }
   }
+  /* Progress bar styling */
+  #progressBar {
+    width: 100%;
+    background-color: #f3f3f3;
+    margin-top: 10px;
+  }
+  #progress {
+    width: 0;
+    height: 30px;
+    background-color: #4caf50;
+  }
 </style>
 <title>Task Reminder</title>
 </head>
@@ -59,6 +70,10 @@
 <button id="startStopRecording">Start Recording</button>
 <br><br>
 <button id="stopLoop" style="display:none;">Stop Reminder</button>
+<!-- Progress bar element -->
+<div id="progressBar" style="display:none;">
+  <div id="progress"></div>
+</div>
 
 <!-- Google AdSense Code -->
 <div class="ad-container">
@@ -97,6 +112,8 @@
 <script>
 const startStopRecordingBtn = document.getElementById('startStopRecording');
 const stopLoopBtn = document.getElementById('stopLoop');
+const progressBar = document.getElementById('progressBar');
+const progress = document.getElementById('progress');
 
 let mediaRecorder;
 let recordedChunks = [];
@@ -104,6 +121,7 @@ let isLoopPlaying = false;
 let loopIntervalId;
 let audioUrl;
 let audio; // Define the audio variable globally
+let progressInterval;
 
 startStopRecordingBtn.addEventListener('click', async () => {
   if (mediaRecorder && mediaRecorder.state === 'recording') {
@@ -111,6 +129,9 @@ startStopRecordingBtn.addEventListener('click', async () => {
     startStopRecordingBtn.textContent = 'Start Recording';
     startStopRecordingBtn.disabled = false;
     stopLoop();
+    clearInterval(progressInterval);
+    progressBar.style.display = 'none';
+    progress.style.width = '0';
   } else {
     if (audioUrl) {
       URL.revokeObjectURL(audioUrl);
@@ -130,15 +151,32 @@ startStopRecordingBtn.addEventListener('click', async () => {
       audioUrl = URL.createObjectURL(blob);
       stopLoopBtn.style.display = 'inline-block'; // Show stop button after recording
       playLoop(audioUrl);
+      clearInterval(progressInterval);
+      progressBar.style.display = 'none';
+      progress.style.width = '0';
     };
     mediaRecorder.start();
     startStopRecordingBtn.textContent = 'Stop Recording';
+    progressBar.style.display = 'block';
+    progressInterval = setInterval(updateProgressBar, 100);
+    setTimeout(() => {
+      if (mediaRecorder.state === 'recording') {
+        mediaRecorder.stop();
+        startStopRecordingBtn.textContent = 'Start Recording';
+      }
+    }, 30000); // Stop recording after 30 seconds
   }
 });
 
 stopLoopBtn.addEventListener('click', () => {
   stopLoop();
 });
+
+function updateProgressBar() {
+  const progressWidth = parseFloat(progress.style.width) || 0;
+  const newWidth = progressWidth + (100 / 300); // Increment width over 30 seconds
+  progress.style.width = newWidth + '%';
+}
 
 function playLoop(audioUrl) {
   audio = new Audio(audioUrl);
