@@ -55,11 +55,16 @@
     width: 100%;
     background-color: #f3f3f3;
     margin-top: 10px;
+    display: none; /* Hide by default */
   }
   #progress {
     width: 0;
     height: 30px;
     background-color: #4caf50;
+  }
+  #recordingText {
+    display: none; /* Hide by default */
+    margin-top: 10px;
   }
 </style>
 <title>Task Reminder</title>
@@ -70,8 +75,13 @@
 <button id="startStopRecording">Start Recording</button>
 <br><br>
 <button id="stopLoop" style="display:none;">Stop Reminder</button>
+<!-- Text displayed during recording -->
+<div id="recordingText">
+  Say the name of the task you want to complete.<br>
+  The name of the task will be played on a loop until you've completed it.
+</div>
 <!-- Progress bar element -->
-<div id="progressBar" style="display:none;">
+<div id="progressBar">
   <div id="progress"></div>
 </div>
 
@@ -85,7 +95,7 @@
        data-ad-slot="1234567890"
        data-ad-format="auto"></ins>
   <script>
-    (adsbygoogle = window.adsbygoogle || []).push({});
+    (adsbygoogle = window.adsbygoogle || {}).push({});
   </script>
 </div>
 
@@ -114,6 +124,7 @@ const startStopRecordingBtn = document.getElementById('startStopRecording');
 const stopLoopBtn = document.getElementById('stopLoop');
 const progressBar = document.getElementById('progressBar');
 const progress = document.getElementById('progress');
+const recordingText = document.getElementById('recordingText');
 
 let mediaRecorder;
 let recordedChunks = [];
@@ -132,6 +143,7 @@ startStopRecordingBtn.addEventListener('click', async () => {
     clearInterval(progressInterval);
     progressBar.style.display = 'none';
     progress.style.width = '0';
+    recordingText.style.display = 'none';
   } else {
     if (audioUrl) {
       URL.revokeObjectURL(audioUrl);
@@ -154,10 +166,12 @@ startStopRecordingBtn.addEventListener('click', async () => {
       clearInterval(progressInterval);
       progressBar.style.display = 'none';
       progress.style.width = '0';
+      recordingText.style.display = 'none';
     };
     mediaRecorder.start();
     startStopRecordingBtn.textContent = 'Stop Recording';
     progressBar.style.display = 'block';
+    recordingText.style.display = 'block';
     progressInterval = setInterval(updateProgressBar, 100);
     setTimeout(() => {
       if (mediaRecorder.state === 'recording') {
